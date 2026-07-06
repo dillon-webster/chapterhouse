@@ -26,7 +26,11 @@ export function LoginForm() {
     setSubmitting(false);
 
     if (res?.error) {
-      setError("Incorrect username/email or password.");
+      setError(
+        res.status === 429
+          ? "Too many sign-in attempts. Wait a minute and try again."
+          : "Incorrect username/email or password.",
+      );
       return;
     }
     router.push("/");

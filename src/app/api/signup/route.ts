@@ -3,8 +3,12 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
+import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
+
+// Slows invite-code guessing and mass account creation.
+const SIGNUP_LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 };
 
 const signupSchema = z.object({
   username: z
@@ -19,6 +23,9 @@ const signupSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const rate = checkRateLimit(`signup:${clientIp(request)}`, SIGNUP_LIMIT);
+  if (!rate.ok) return rateLimitResponse(rate);
+
   let body: unknown;
   try {
     body = await request.json();

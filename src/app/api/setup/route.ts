@@ -3,8 +3,11 @@ import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
+import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
+
+const SETUP_LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 };
 
 // First-run setup: creates the instance's admin account and initial invite
 // code. Only usable while the instance has zero users; afterwards it is inert
@@ -35,6 +38,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const rate = checkRateLimit(`setup:${clientIp(request)}`, SETUP_LIMIT);
+  if (!rate.ok) return rateLimitResponse(rate);
+
   let body: unknown;
   try {
     body = await request.json();
