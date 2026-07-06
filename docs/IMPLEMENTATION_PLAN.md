@@ -207,9 +207,11 @@ What has to change from the current setup:
   table, proxy notes, upgrade + backup guidance — done. Screenshots (lead
   with the bookcase view) still to add.
 - ✅ **License + name**: MIT, named **Chapterhouse**.
-- ⬜ **Basic hardening for strangers' instances**: rate-limit login/signup,
-  and land enough of Milestone 8 (error logging) that issue reports are
-  diagnosable.
+- 🚧 **Basic hardening for strangers' instances**: rate-limiting done —
+  per-IP on login (5/min) and signup (5/15min), per-user on the Open Library
+  search proxy (30/min), via an in-memory sliding window (`src/lib/rateLimit.ts`,
+  fits the single-process deploy). Still to do: land enough of Milestone 8
+  (error logging) that issue reports are diagnosable.
 
 Explicitly **out of scope**: multi-tenancy/club entities, email/SMTP (invite
 codes make it unnecessary), and external auth providers (OIDC is a common
