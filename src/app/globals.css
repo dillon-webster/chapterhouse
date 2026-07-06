@@ -1,0 +1,279 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Palette is defined as space-separated RGB channels so Tailwind's opacity
+ * modifiers (e.g. text-ink/50) keep working — see the rgb(var(--x) / <alpha-value>)
+ * color definitions in tailwind.config.ts.
+ *
+ * THEMES: the base (:root) palette below is "Classic Brown". Alternate presets
+ * live further down, keyed by [data-theme="<id>"] on <html> (set server-side in
+ * app/layout.tsx from the signed-in user's saved theme). Each theme defines
+ * light values plus a prefers-color-scheme: dark override, so every theme still
+ * follows the OS light/dark setting — the preset only chooses the hue family.
+ * The theme id list lives in src/lib/themes.ts.
+ *
+ * Night values are deliberately softer than a black/white scheme: warm dark
+ * paper, dim ink, and muted accents keep late reading low-glare.
+ */
+:root {
+  color-scheme: light;
+  --paper: 250 248 243; /* #faf8f3 warm cream */
+  --ink: 28 25 23; /* #1c1917 warm near-black */
+  --accent: 139 94 52; /* #8b5e34 */
+  --accent-light: 166 124 82; /* #a67c52 */
+  --accent-dark: 107 68 35; /* #6b4423 */
+  --surface: 255 255 255; /* card/input fill — brightens the cream paper */
+
+  /* Shelves bookcase — skeuomorphic wood. Light = warm oak. */
+  --wood-cabinet-1: #e8d8bd;
+  --wood-cabinet-2: #ddc9a6;
+  --wood-cabinet-3: #d2bb95;
+  --wood-shelf-1: #efe3cd;
+  --wood-shelf-2: #e3d2b0;
+  --wood-shelf-3: #d8c39c;
+  --wood-rail-1: #8b5e34;
+  --wood-rail-2: #6b4423;
+  --wood-rail-3: #5a3a1d;
+  --wood-edge: #6b4423;
+  --wood-drawer: #f3ead9;
+  --wood-card-1: #efe3cd;
+  --wood-card-2: #e3d2b0;
+  --shelf-text: #1c1917;
+  --shelf-muted: #6b5d4f;
+  --wood-track: rgba(107, 68, 35, 0.15);
+  --wood-ghost-bg: rgba(107, 68, 35, 0.06);
+  --wood-ghost-border: rgba(107, 68, 35, 0.12);
+  --wood-inset: rgba(255, 250, 240, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --paper: 30 26 22; /* #1e1a16 warm dark brown/charcoal */
+    --ink: 216 199 163; /* #d8c7a3 soft warm beige */
+    --accent: 201 138 74; /* #c98a4a muted amber */
+    --accent-light: 215 162 95; /* #d7a25f softened amber lift */
+    --accent-dark: 183 121 62; /* #b7793e softer amber */
+    --surface: 42 36 30; /* #2a241e raised card/border tone */
+
+    /* Dark = warm low-glare bookcase. Book spines stay vivid. */
+    --wood-cabinet-1: #302820;
+    --wood-cabinet-2: #29221c;
+    --wood-cabinet-3: #221c17;
+    --wood-shelf-1: #2d251d;
+    --wood-shelf-2: #261f19;
+    --wood-shelf-3: #201a15;
+    --wood-rail-1: #6b4628;
+    --wood-rail-2: #53351f;
+    --wood-rail-3: #3d2718;
+    --wood-edge: #17120e;
+    --wood-drawer: #2a241e;
+    --wood-card-1: #2d251d;
+    --wood-card-2: #241e18;
+    --shelf-text: #d8c7a3;
+    --shelf-muted: #a89573;
+    --wood-track: rgba(216, 199, 163, 0.13);
+    --wood-ghost-bg: rgba(216, 199, 163, 0.05);
+    --wood-ghost-border: rgba(216, 199, 163, 0.1);
+    --wood-inset: rgba(255, 220, 165, 0.06);
+  }
+}
+
+/* ===========================================================================
+ * Alternate presets
+ * ---------------------------------------------------------------------------
+ * Each theme sets only the six core tokens (paper/ink/accent×3/surface) for
+ * light and dark. The skeuomorphic bookcase (--wood-*) is DERIVED from those
+ * tokens via color-mix() in the shared block at the bottom, so every preset
+ * gets a coherent shelf palette without hand-tuning ~26 values per theme.
+ * =========================================================================== */
+
+/* --- Forest ---------------------------------------------------------------- */
+[data-theme="forest"] {
+  color-scheme: light;
+  --paper: 244 246 240;
+  --ink: 26 32 26;
+  --accent: 63 125 78;
+  --accent-light: 92 156 107;
+  --accent-dark: 47 94 58;
+  --surface: 255 255 255;
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="forest"] {
+    color-scheme: dark;
+    --paper: 22 32 26;
+    --ink: 207 224 200;
+    --accent: 107 191 122;
+    --accent-light: 138 209 151;
+    --accent-dark: 79 158 94;
+    --surface: 30 43 34;
+  }
+}
+
+/* --- Slate ------------------------------------------------------------------ */
+[data-theme="slate"] {
+  color-scheme: light;
+  --paper: 242 245 248;
+  --ink: 27 36 48;
+  --accent: 61 106 153;
+  --accent-light: 90 137 186;
+  --accent-dark: 44 80 117;
+  --surface: 255 255 255;
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="slate"] {
+    color-scheme: dark;
+    --paper: 22 28 36;
+    --ink: 195 208 222;
+    --accent: 107 155 209;
+    --accent-light: 139 180 224;
+    --accent-dark: 79 124 174;
+    --surface: 31 40 51;
+  }
+}
+
+/* --- Plum ------------------------------------------------------------------- */
+[data-theme="plum"] {
+  color-scheme: light;
+  --paper: 247 242 245;
+  --ink: 36 24 32;
+  --accent: 138 61 95;
+  --accent-light: 167 92 124;
+  --accent-dark: 107 44 71;
+  --surface: 255 255 255;
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="plum"] {
+    color-scheme: dark;
+    --paper: 30 21 26;
+    --ink: 224 200 211;
+    --accent: 192 112 145;
+    --accent-light: 211 143 172;
+    --accent-dark: 161 86 114;
+    --surface: 42 30 37;
+  }
+}
+
+/* --- Gruvbox (Neovim) ------------------------------------------------------- */
+[data-theme="gruvbox"] {
+  color-scheme: light;
+  --paper: 251 241 199;
+  --ink: 60 56 54;
+  --accent: 214 93 14;
+  --accent-light: 254 128 25;
+  --accent-dark: 175 58 3;
+  --surface: 249 245 215;
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="gruvbox"] {
+    color-scheme: dark;
+    --paper: 40 40 40;
+    --ink: 235 219 178;
+    --accent: 254 128 25;
+    --accent-light: 255 166 87;
+    --accent-dark: 214 93 14;
+    --surface: 60 56 54;
+  }
+}
+
+/* --- Catppuccin (Latte / Mocha) -------------------------------------------- */
+[data-theme="catppuccin"] {
+  color-scheme: light;
+  --paper: 239 241 245;
+  --ink: 76 79 105;
+  --accent: 136 57 239;
+  --accent-light: 164 101 242;
+  --accent-dark: 109 40 201;
+  --surface: 255 255 255;
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="catppuccin"] {
+    color-scheme: dark;
+    --paper: 30 30 46;
+    --ink: 205 214 244;
+    --accent: 203 166 247;
+    --accent-light: 217 193 251;
+    --accent-dark: 180 142 242;
+    --surface: 49 50 68;
+  }
+}
+
+/* --- Tokyo Night (Day / Night) --------------------------------------------- */
+[data-theme="tokyonight"] {
+  color-scheme: light;
+  --paper: 225 226 231;
+  --ink: 52 59 88;
+  --accent: 46 125 233;
+  --accent-light: 90 139 240;
+  --accent-dark: 26 95 196;
+  --surface: 237 238 242;
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="tokyonight"] {
+    color-scheme: dark;
+    --paper: 26 27 38;
+    --ink: 192 202 245;
+    --accent: 122 162 247;
+    --accent-light: 157 180 255;
+    --accent-dark: 95 135 216;
+    --surface: 36 40 59;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Derived bookcase for every non-brown preset. color-mix() re-resolves against
+ * whichever --accent/--paper/--ink are active, so this one block themes the
+ * shelves in both light and dark. Brown keeps its own hand-tuned wood above.
+ * --------------------------------------------------------------------------- */
+[data-theme="forest"],
+[data-theme="slate"],
+[data-theme="plum"],
+[data-theme="gruvbox"],
+[data-theme="catppuccin"],
+[data-theme="tokyonight"] {
+  --wood-cabinet-1: color-mix(in srgb, rgb(var(--accent)) 26%, rgb(var(--paper)));
+  --wood-cabinet-2: color-mix(in srgb, rgb(var(--accent)) 38%, rgb(var(--paper)));
+  --wood-cabinet-3: color-mix(in srgb, rgb(var(--accent)) 47%, rgb(var(--paper)));
+  --wood-shelf-1: color-mix(in srgb, rgb(var(--accent)) 19%, rgb(var(--paper)));
+  --wood-shelf-2: color-mix(in srgb, rgb(var(--accent)) 32%, rgb(var(--paper)));
+  --wood-shelf-3: color-mix(in srgb, rgb(var(--accent)) 43%, rgb(var(--paper)));
+  --wood-rail-1: rgb(var(--accent));
+  --wood-rail-2: rgb(var(--accent-dark));
+  --wood-rail-3: color-mix(in srgb, rgb(var(--accent-dark)) 78%, #000);
+  --wood-edge: rgb(var(--accent-dark));
+  --wood-drawer: color-mix(in srgb, rgb(var(--accent)) 12%, rgb(var(--paper)));
+  --wood-card-1: color-mix(in srgb, rgb(var(--accent)) 19%, rgb(var(--paper)));
+  --wood-card-2: color-mix(in srgb, rgb(var(--accent)) 32%, rgb(var(--paper)));
+  --shelf-text: rgb(var(--ink));
+  --shelf-muted: color-mix(in srgb, rgb(var(--ink)) 65%, rgb(var(--accent)));
+  --wood-track: rgb(var(--accent-dark) / 0.15);
+  --wood-ghost-bg: rgb(var(--accent-dark) / 0.06);
+  --wood-ghost-border: rgb(var(--accent-dark) / 0.12);
+  --wood-inset: rgb(255 250 240 / 0.5);
+}
+/* Softer cabinets + sheen in dark, mirroring brown's subtler night bookcase. */
+@media (prefers-color-scheme: dark) {
+  [data-theme="forest"],
+  [data-theme="slate"],
+  [data-theme="plum"],
+  [data-theme="gruvbox"],
+  [data-theme="catppuccin"],
+  [data-theme="tokyonight"] {
+    --wood-cabinet-1: color-mix(in srgb, rgb(var(--accent)) 16%, rgb(var(--paper)));
+    --wood-cabinet-2: color-mix(in srgb, rgb(var(--accent)) 24%, rgb(var(--paper)));
+    --wood-cabinet-3: color-mix(in srgb, rgb(var(--accent)) 32%, rgb(var(--paper)));
+    --wood-shelf-1: color-mix(in srgb, rgb(var(--accent)) 12%, rgb(var(--paper)));
+    --wood-shelf-2: color-mix(in srgb, rgb(var(--accent)) 20%, rgb(var(--paper)));
+    --wood-shelf-3: color-mix(in srgb, rgb(var(--accent)) 28%, rgb(var(--paper)));
+    --wood-drawer: color-mix(in srgb, rgb(var(--accent)) 10%, rgb(var(--paper)));
+    --wood-card-1: color-mix(in srgb, rgb(var(--accent)) 12%, rgb(var(--paper)));
+    --wood-card-2: color-mix(in srgb, rgb(var(--accent)) 20%, rgb(var(--paper)));
+    --wood-inset: rgb(255 240 220 / 0.06);
+  }
+}
+
+body {
+  @apply bg-paper text-ink antialiased;
+}

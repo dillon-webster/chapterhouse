@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: bookclub
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bookclub"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/bookclub
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env (openssl rand -base64 32)}
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+      # Required for NextAuth v5 when running self-hosted behind a proxy.
+      AUTH_TRUST_HOST: "true"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      STORAGE_DIR: /data
+      NODE_ENV: production
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      # Bind-mount a host directory (e.g. on a large external drive) to /data.
+      # Set STORAGE_HOST_PATH in .env, e.g. /mnt/external/chapterhouse
+      - ${STORAGE_HOST_PATH:-./storage}:/data
+
+volumes:
+  db-data:

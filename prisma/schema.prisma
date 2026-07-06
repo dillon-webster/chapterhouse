@@ -1,0 +1,197 @@
+// Book Club — data model
+// See docs/IMPLEMENTATION_PLAN.md for how each model maps to features.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Prisma 7: the connection URL lives in prisma.config.ts (for the CLI) and is
+  // passed to PrismaClient via the pg driver adapter at runtime (src/lib/prisma.ts).
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum ShelfStatus {
+  WANT_TO_READ
+  CURRENTLY_READING
+  FINISHED
+  DNF
+}
+
+enum ActivityType {
+  SHELF_CHANGE
+  MILESTONE
+  COMMENT
+}
+
+enum BookSource {
+  EPUB // owner-supplied EPUB in the readable catalog
+  OPEN_LIBRARY // metadata-only, added by a user for shelf tracking (no reader)
+}
+
+// ---------------------------------------------------------------------------
+// Users
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  avatarUrl    String?
+  bio          String?
+  isAdmin      Boolean  @default(false)
+  // UI color preset (see src/lib/themes.ts). Each theme still follows the OS
+  // light/dark setting; this only chooses the palette.
+  theme        String   @default("brown")
+  createdAt    DateTime @default(now())
+
+  shelfEntries    UserBook[]
+  readingSessions ReadingSession[]
+  comments        Comment[]
+  activityEvents  ActivityEvent[]
+
+  @@index([username])
+}
+
+// ---------------------------------------------------------------------------
+// Catalog
+// ---------------------------------------------------------------------------
+
+model Book {
+  id            String    @id @default(cuid())
+  title         String
+  author        String
+  description   String?
+  source        BookSource @default(EPUB)
+  coverPath     String? // relative path under STORAGE_DIR/covers (EPUB imports)
+  coverUrl      String? // external cover (Open Library books)
+  epubPath      String? // relative path under STORAGE_DIR/epubs; null for non-EPUB
+  // Open Library work id (e.g. "OL123W"); dedupes shared shelf-only books.
+  openLibraryId String?    @unique
+  // Estimated length — drives spine thickness on the shelf. From EPUB text for
+  // imports, or Open Library's median page count.
+  pageCount     Int?
+  // Composed SVG book-spine (base64 data URI). Colors optionally derived from
+  // the cover via Gemini; falls back to defaults. See src/lib/spine.ts.
+  spineImageData String?
+  // Series grouping (assigned manually by an admin — EPUBs carry no series
+  // metadata). Books sharing a `series` collapse into one stack on the catalog,
+  // ordered by `seriesIndex` (Float allows half-steps for novellas).
+  series        String?
+  seriesIndex   Float?
+  // Book-club pick state lives on the Book record (no separate club entity).
+  isCurrentPick Boolean   @default(false)
+  pickedAt      DateTime?
+  addedAt       DateTime  @default(now())
+
+  shelfEntries    UserBook[]
+  readingSessions ReadingSession[]
+  comments        Comment[]
+  activityEvents  ActivityEvent[]
+
+  @@index([isCurrentPick])
+  @@index([addedAt])
+  @@index([series])
+}
+
+// ---------------------------------------------------------------------------
+// Shelves (per-user, per-book status + reading position)
+// ---------------------------------------------------------------------------
+
+model UserBook {
+  id              String      @id @default(cuid())
+  userId          String
+  bookId          String
+  status          ShelfStatus @default(WANT_TO_READ)
+  // epub.js CFI for exact resume position; progress derived from it.
+  currentLocation String?
+  progressPercent Float       @default(0)
+  addedAt         DateTime    @default(now())
+  startedAt       DateTime?
+  finishedAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([bookId])
+  @@index([userId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Reading sessions (one row per focused reading session; summed for stats)
+// ---------------------------------------------------------------------------
+
+model ReadingSession {
+  id              String    @id @default(cuid())
+  userId          String
+  bookId          String
+  startedAt       DateTime  @default(now())
+  endedAt         DateTime?
+  durationSeconds Int       @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([userId, bookId])
+  @@index([userId, startedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Discussion (flat with optional one-level reply via parentCommentId)
+// ---------------------------------------------------------------------------
+
+model Comment {
+  id              String   @id @default(cuid())
+  bookId          String
+  userId          String
+  body            String
+  parentCommentId String?
+  createdAt       DateTime @default(now())
+
+  book    Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([bookId, createdAt])
+  @@index([parentCommentId])
+}
+
+// ---------------------------------------------------------------------------
+// Activity feed (global, polled)
+// ---------------------------------------------------------------------------
+
+model ActivityEvent {
+  id        String       @id @default(cuid())
+  userId    String
+  bookId    String?
+  type      ActivityType
+  // Flexible per-type payload, e.g. { "from": "WANT_TO_READ", "to": "FINISHED" }
+  payload   Json?
+  createdAt DateTime     @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book? @relation(fields: [bookId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Invite codes (single shared, admin-rotatable; multiple rows kept as history)
+// ---------------------------------------------------------------------------
+
+model InviteCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([isActive])
+}

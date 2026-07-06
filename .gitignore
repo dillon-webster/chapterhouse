@@ -1,0 +1,40 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+/dist
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env files (keep .env.example tracked)
+.env
+.env*.local
+.env.production
+
+# prisma
+/prisma/*.db
+
+# local uploaded content / external-drive mount used for local dev
+/storage
+
+# typescript
+*.tsbuildinfo
+
+# editor
+.idea
+.vscode
