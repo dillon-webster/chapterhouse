@@ -16,6 +16,7 @@ services:
 
   app:
     image: ghcr.io/dillon-webster/chapterhouse:latest
+    pull_policy: missing
     # To run from source instead of the prebuilt image:
     #   docker compose up -d --build
     build: .

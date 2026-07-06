@@ -30,6 +30,18 @@ Open `http://localhost:3000` (or your server's address) — the setup wizard
 walks you through creating your admin account and hands you an invite code
 for your friends.
 
+> **Just running it?** You don't need to clone the repo — the three commands
+> above are all you need, and they pull the prebuilt image. Clone only if you
+> want to build from source (`docker compose up -d --build`) or develop.
+
+To build the app image yourself instead:
+
+```bash
+git clone https://github.com/dillon-webster/chapterhouse.git
+cd chapterhouse
+docker compose up -d --build
+```
+
 **Adding books:** drop `.epub` files into the `storage/epubs/` directory that
 appears next to your compose file, then click **Import books** in the app
 (admin only). Covers, page counts, and shelf spines are extracted
