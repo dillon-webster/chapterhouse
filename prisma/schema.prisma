@@ -77,8 +77,8 @@ model Book {
   // Estimated length — drives spine thickness on the shelf. From EPUB text for
   // imports, or Open Library's median page count.
   pageCount     Int?
-  // Composed SVG book-spine (base64 data URI). Colors optionally derived from
-  // the cover via Gemini; falls back to defaults. See src/lib/spine.ts.
+  // Composed SVG book-spine (base64 data URI). Colors derived locally from
+  // the cover's pixels; falls back to defaults. See src/lib/spine.ts.
   spineImageData String?
   // Series grouping (assigned manually by an admin — EPUBs carry no series
   // metadata). Books sharing a `series` collapse into one stack on the catalog,

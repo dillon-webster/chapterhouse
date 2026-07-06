@@ -39,12 +39,25 @@ Set these in a `.env` file next to `docker-compose.yml`:
 | `POSTGRES_PASSWORD` | `chapterhouse` | Database password (internal network only, but set your own) |
 | `AUTH_SECRET` | auto-generated | Session signing secret; generated and persisted on first boot |
 | `AUTH_URL` | request host | Only needed if host detection misbehaves behind your proxy |
-| `GEMINI_API_KEY` | unset | Colors book spines from their covers via Gemini |
 
-Behind a reverse proxy (Traefik, Nginx Proxy Manager, Caddy, Tailscale
-Serve): proxy to the app port; the app trusts the forwarded host
-(`AUTH_TRUST_HOST` is preset). If sign-in redirects go to the wrong host,
-set `AUTH_URL` to your public URL.
+### How friends connect
+
+Chapterhouse doesn't care how traffic reaches it — pick whatever fits your
+setup:
+
+- **Tailscale** (great for a private club): friends install Tailscale, and you
+  either invite them to your tailnet or [share the server
+  node](https://tailscale.com/kb/1084/sharing) with their own (free) accounts.
+  `tailscale serve` on the host gets you HTTPS with zero certificate work.
+  Nothing is ever exposed to the public internet.
+- **Reverse proxy + domain** (Caddy, Traefik, Nginx Proxy Manager): the classic
+  route. Proxy your domain to the app port; the app trusts the forwarded host
+  (`AUTH_TRUST_HOST` is preset). Signup still requires your invite code, so
+  being internet-reachable doesn't mean being open.
+- **Cloudflare Tunnel**: public HTTPS URL without opening ports.
+
+If sign-in redirects ever go to the wrong host behind a proxy, set `AUTH_URL`
+to your public URL.
 
 **Upgrading:** `docker compose pull && docker compose up -d` — migrations run
 automatically on startup.

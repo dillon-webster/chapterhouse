@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Keep Prisma/bcrypt out of the bundler so they run as plain Node modules.
-  serverExternalPackages: ["@prisma/client", "@prisma/adapter-pg", "bcryptjs"],
+  serverExternalPackages: ["@prisma/client", "@prisma/adapter-pg", "bcryptjs", "sharp"],
   // Allow a phone (LAN IP) to load dev resources / HMR while testing, e.g.
   // ALLOWED_DEV_ORIGIN=192.168.1.50 npm run dev
   allowedDevOrigins: process.env.ALLOWED_DEV_ORIGIN

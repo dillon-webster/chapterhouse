@@ -1,21 +1,15 @@
-import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/prisma";
 import { readStoredFile } from "@/lib/storage";
+import { extractSpineColors, type SpineColors } from "@/lib/coverColors";
 
-// Builds a small SVG "book spine" for the Shelves bookcase. Colors are optionally
-// derived from the cover via Gemini; without a GEMINI_API_KEY we fall back to a
-// deterministic library palette so every book still gets a spine.
-
-interface SpineColors {
-  bg: string;
-  text: string;
-  accent: string;
-}
+// Builds a small SVG "book spine" for the Shelves bookcase. Colors are derived
+// locally from the cover's pixels (src/lib/coverColors.ts); books without a
+// usable cover fall back to a deterministic library palette.
 
 const DEFAULTS: SpineColors = { bg: "#3a1e0a", text: "#f5e6c8", accent: "#c8923a" };
 
 // Deterministic fallback palette keyed off the book id, so spines vary even
-// when Gemini isn't configured.
+// for books without a usable cover.
 const FALLBACK_BGS = [
   "#5c2d1e",
   "#1e3a5c",
@@ -34,36 +28,6 @@ function hashString(s: string): number {
 
 function fallbackColors(bookId: string): SpineColors {
   return { ...DEFAULTS, bg: FALLBACK_BGS[hashString(bookId) % FALLBACK_BGS.length] };
-}
-
-async function extractColors(
-  coverData: Buffer,
-  mimeType: string,
-  ai: GoogleGenAI,
-): Promise<SpineColors> {
-  const result = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: [
-      {
-        role: "user",
-        parts: [
-          {
-            text: 'Analyze this book cover and return ONLY a JSON object, no explanation: {"bg":"#xxxxxx","text":"#xxxxxx","accent":"#xxxxxx"} — bg is the dominant spine/background color, text is a high-contrast color for reading on bg (usually white or cream for dark bg, dark for light bg), accent is the most prominent decorative color (gold, silver, etc). Return only valid JSON.',
-          },
-          { inlineData: { mimeType, data: coverData.toString("base64") } },
-        ],
-      },
-    ],
-  });
-
-  const raw = result.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text ?? "";
-  const match = raw.match(/\{[^}]+\}/);
-  if (!match) return DEFAULTS;
-  try {
-    return { ...DEFAULTS, ...JSON.parse(match[0]) } as SpineColors;
-  } catch {
-    return DEFAULTS;
-  }
 }
 
 function spineTitle(title: string): string {
@@ -138,37 +102,28 @@ function buildSpineSVG(rawTitle: string, c: SpineColors): string {
 </svg>`;
 }
 
-function mimeFromName(name: string): string {
-  const ext = name.slice(name.lastIndexOf(".")).toLowerCase();
-  if (ext === ".png") return "image/png";
-  if (ext === ".webp") return "image/webp";
-  if (ext === ".gif") return "image/gif";
-  return "image/jpeg";
-}
-
 // Cover bytes for color extraction — from a local file (EPUB imports) or a
 // remote URL (Open Library books).
 async function loadCover(
   coverPath: string | null,
   coverUrl: string | null,
-): Promise<{ data: Buffer; mimeType: string } | null> {
+): Promise<Buffer | null> {
   if (coverPath) {
-    return { data: await readStoredFile("covers", coverPath), mimeType: mimeFromName(coverPath) };
+    return readStoredFile("covers", coverPath);
   }
   if (coverUrl) {
     const res = await fetch(coverUrl, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;
-    const data = Buffer.from(await res.arrayBuffer());
-    const mimeType = res.headers.get("content-type")?.split(";")[0] || "image/jpeg";
-    return { data, mimeType };
+    return Buffer.from(await res.arrayBuffer());
   }
   return null;
 }
 
 /**
  * Generate (and persist) a spine SVG for a book. Best-effort: derives colors
- * from the cover via Gemini when configured, otherwise uses a deterministic
- * fallback palette. Skips books that already have a spine unless `force`.
+ * from the cover's pixels, falling back to a deterministic palette when the
+ * cover is missing or unreadable. Skips books that already have a spine
+ * unless `force`.
  */
 export async function generateSpine(bookId: string, force = false): Promise<void> {
   const book = await prisma.book.findUnique({ where: { id: bookId } });
@@ -176,17 +131,13 @@ export async function generateSpine(bookId: string, force = false): Promise<void
 
   let colors = fallbackColors(bookId);
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (apiKey) {
-    try {
-      const cover = await loadCover(book.coverPath, book.coverUrl);
-      if (cover) {
-        const ai = new GoogleGenAI({ apiKey });
-        colors = await extractColors(cover.data, cover.mimeType, ai);
-      }
-    } catch (e) {
-      console.error(`[spine] color extraction failed for ${bookId}:`, e);
+  try {
+    const cover = await loadCover(book.coverPath, book.coverUrl);
+    if (cover) {
+      colors = (await extractSpineColors(cover)) ?? colors;
     }
+  } catch (e) {
+    console.error(`[spine] color extraction failed for ${bookId}:`, e);
   }
 
   try {

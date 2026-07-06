@@ -33,8 +33,6 @@ services:
       AUTH_URL: ${AUTH_URL:-}
       # Required for NextAuth v5 when running self-hosted behind a proxy.
       AUTH_TRUST_HOST: "true"
-      # Optional — colors book spines from covers via Gemini when set.
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       STORAGE_DIR: /data
       NODE_ENV: production
     ports:

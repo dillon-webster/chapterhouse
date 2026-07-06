@@ -92,8 +92,8 @@ imported via `npm run db:import` or the in-app "Import books" button (admin only
 
 ### Book spines (supports the bookcase)
 - ✅ `Book.spineImageData` (base64 SVG) + `Book.pageCount` columns.
-- ✅ `src/lib/spine.ts` composes the spine SVG; colors optionally derived from the
-  cover via **Gemini** (`gemini-2.5-flash`, `GEMINI_API_KEY`), else a
+- ✅ `src/lib/spine.ts` composes the spine SVG; colors derived locally from the
+  cover's pixels (`src/lib/coverColors.ts`, sharp — no external API), else a
   deterministic fallback palette — generation is best-effort, never blocks import.
 - ✅ Page count estimated from EPUB text in `src/lib/epub.ts` (~1800 chars/page).
 - ✅ Generated during `importBooks`; `npm run db:backfill-spines` backfills
