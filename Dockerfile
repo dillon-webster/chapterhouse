@@ -32,8 +32,10 @@ COPY --from=build /app/tsconfig.json ./tsconfig.json
 COPY --from=build /app/src ./src
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/prisma.config.ts ./prisma.config.ts
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 EXPOSE 3000
 
-# Apply pending migrations, then start the server.
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
+# Generates AUTH_SECRET if unset, applies pending migrations, starts the server.
+CMD ["./docker-entrypoint.sh"]

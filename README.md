@@ -2,19 +2,63 @@
 
 A self-hosted, private social reading app for you and your friends — a book
 club in a box. In-app EPUB reader with automatic progress tracking, a shared
-catalog, a monthly book-club pick, per-book discussion, and a group activity
-feed. One instance hosts one club.
+catalog, a monthly book-club pick, bookcase-style shelves, and a group
+activity feed. One instance hosts one club.
 
 Each instance is private: members join by invite code, and books are EPUB
 files the instance owner supplies.
+
+## Quick start (Docker)
+
+All you need is Docker. No account creation, no config files, no secrets to
+generate:
+
+```bash
+mkdir chapterhouse && cd chapterhouse
+curl -LO https://raw.githubusercontent.com/dillon-webster/chapterhouse/main/docker-compose.yml
+docker compose up -d
+```
+
+Open `http://localhost:3000` (or your server's address) — the setup wizard
+walks you through creating your admin account and hands you an invite code
+for your friends.
+
+**Adding books:** drop `.epub` files into the `storage/epubs/` directory that
+appears next to your compose file, then click **Import books** in the app
+(admin only). Covers, page counts, and shelf spines are extracted
+automatically.
+
+### Options (all optional)
+
+Set these in a `.env` file next to `docker-compose.yml`:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `APP_PORT` | `3000` | Host port to serve on |
+| `STORAGE_HOST_PATH` | `./storage` | Where EPUBs/covers/avatars live — point at a big drive |
+| `POSTGRES_PASSWORD` | `chapterhouse` | Database password (internal network only, but set your own) |
+| `AUTH_SECRET` | auto-generated | Session signing secret; generated and persisted on first boot |
+| `AUTH_URL` | request host | Only needed if host detection misbehaves behind your proxy |
+| `GEMINI_API_KEY` | unset | Colors book spines from their covers via Gemini |
+
+Behind a reverse proxy (Traefik, Nginx Proxy Manager, Caddy, Tailscale
+Serve): proxy to the app port; the app trusts the forwarded host
+(`AUTH_TRUST_HOST` is preset). If sign-in redirects go to the wrong host,
+set `AUTH_URL` to your public URL.
+
+**Upgrading:** `docker compose pull && docker compose up -d` — migrations run
+automatically on startup.
+
+**Backups:** dump the `db` service's Postgres and copy your storage
+directory. That's the whole state.
 
 ## Stack
 
 - **Next.js 16** (App Router) + **TypeScript** + **Tailwind CSS**
 - **Prisma 7** + **PostgreSQL** (via the `pg` driver adapter)
 - **NextAuth v5** (Auth.js) — Credentials provider, JWT sessions, bcrypt hashes
-- **epub.js** — in-browser EPUB rendering (reader, upcoming milestone)
-- **Docker** — self-hosted; EPUBs/covers live on an external drive bind-mounted to `/data`
+- **epub.js** — in-browser EPUB rendering
+- **Docker** — prebuilt multi-arch images (amd64/arm64) on GHCR
 
 ## Local development
 
@@ -25,22 +69,18 @@ Prerequisites: Node 20+, a running PostgreSQL.
 npm install
 
 # 2. Configure env
-cp .env.example .env          # then edit values; generate a secret:
-openssl rand -base64 32       # -> paste into AUTH_SECRET
+cp .env.example .env          # defaults work for a local Postgres
 
 # 3. Create the database (if it doesn't exist) and apply the schema
-createdb bookclub             # or: psql -c 'CREATE DATABASE bookclub;'
+createdb chapterhouse         # or: psql -c 'CREATE DATABASE chapterhouse;'
 npm run db:migrate            # creates tables from prisma/schema.prisma
 
-# 4. Seed the first admin + invite code (uses SEED_* vars in .env)
-npm run db:seed
-
-# 5. Run
-npm run dev                   # http://localhost:3000
+# 4. Run
+npm run dev                   # http://localhost:3000 → setup wizard
 ```
 
-Log in with the seeded admin, or register a new account at `/signup` using the
-seeded invite code.
+The first visit walks you through creating the admin account (or run
+`npm run db:seed` to create one from the `SEED_*` vars instead).
 
 ## Useful scripts
 
@@ -50,43 +90,28 @@ seeded invite code.
 | `npm run build` / `npm run start` | Production build / serve |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
+| `npm run test` | Unit tests |
 | `npm run db:migrate` | Create + apply a dev migration |
 | `npm run db:deploy` | Apply migrations (prod / CI) |
-| `npm run db:seed` | Seed admin + invite code |
+| `npm run db:seed` | Seed an admin + invite code (dev convenience) |
 | `npm run db:studio` | Prisma Studio |
-
-## Deploying on your server (Docker)
-
-EPUBs, cover images, and avatars are written to `STORAGE_DIR`, which the
-container exposes at `/data` and which is bind-mounted from a directory on the
-host (put it somewhere with room for your library).
-
-```bash
-# In .env on the server, set at minimum:
-#   AUTH_SECRET=...                 (openssl rand -base64 32)
-#   AUTH_URL=http://your-server:3000
-#   POSTGRES_PASSWORD=...
-#   STORAGE_HOST_PATH=/mnt/external/chapterhouse   # host dir for books/covers
-
-docker compose up -d --build
-```
-
-On startup the app container runs `prisma migrate deploy` automatically. To seed
-the first admin/invite after the first deploy:
-
-```bash
-docker compose exec app npm run db:seed
-```
 
 ## Architecture notes
 
 - **Prisma 7**: the DB URL is no longer in `schema.prisma`. The CLI reads it from
   `prisma.config.ts`; the runtime client gets it via the `pg` adapter in
   `src/lib/prisma.ts`.
-- **Auth**: `src/auth.config.ts` is the edge-safe config used by `middleware.ts`;
-  `src/auth.ts` adds the Credentials provider (Prisma + bcrypt, Node runtime).
-- **Storage**: all file I/O goes through `src/lib/storage.ts` — change one env var
-  (`STORAGE_DIR`) to relocate content.
+- **Auth**: `src/auth.config.ts` is the edge-safe config used by the middleware
+  proxy; `src/auth.ts` adds the Credentials provider (Prisma + bcrypt, Node
+  runtime).
+- **Storage**: all file I/O goes through `src/lib/storage.ts` — change one env
+  var (`STORAGE_DIR`) to relocate content.
+- **First run**: with zero users, all sign-in paths funnel to `/setup`, which
+  creates the admin account and the club's invite code in the browser.
 
 See [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) for the feature
 roadmap and current status.
+
+## License
+
+[MIT](LICENSE)

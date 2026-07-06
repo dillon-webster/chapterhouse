@@ -8,6 +8,15 @@ export const dynamic = "force-dynamic";
 export default async function MembersPage() {
   const session = await auth();
 
+  // Admins see the active invite code here — it's what friends need to join.
+  const invite = session?.user?.isAdmin
+    ? await prisma.inviteCode.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: "desc" },
+        select: { code: true },
+      })
+    : null;
+
   const users = await prisma.user.findMany({
     orderBy: { displayName: "asc" },
     select: {
@@ -27,6 +36,20 @@ export default async function MembersPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       <h1 className="mb-5 text-xl font-bold text-ink">Members</h1>
+      {invite && (
+        <div className="mb-5 rounded-lg border border-accent/20 bg-accent/5 px-4 py-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-ink/45">
+            Invite a friend
+          </p>
+          <p className="mt-1 text-sm text-ink/70">
+            Share the invite code{" "}
+            <span className="font-mono font-bold tracking-widest text-accent-dark">
+              {invite.code}
+            </span>{" "}
+            — they can sign up with it at <span className="font-medium">/signup</span>.
+          </p>
+        </div>
+      )}
       <ul className="space-y-2">
         {users.map((u) => {
           const isSelf = u.id === session?.user?.id;

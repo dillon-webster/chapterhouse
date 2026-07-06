@@ -183,30 +183,30 @@ as-is. Books remain the instance owner's responsibility, exactly like today.
 
 What has to change from the current setup:
 
-- ⬜ **First-run setup wizard** (replaces `db:seed` + `SEED_*` env vars): on
-  first launch with zero users, the browser shows a "create your admin account"
-  page that also generates the initial invite code. The seed script stays as a
-  dev/CI convenience only.
-- ⬜ **Config diet**: reduce required env vars to `POSTGRES_PASSWORD` + storage
-  path. Auto-generate `AUTH_SECRET` on first boot and persist it under
-  `STORAGE_DIR`. Everything else defaults sensibly (`GEMINI_API_KEY` already
-  follows the right pattern: optional, best-effort, silent fallback).
-- ⬜ **Invite-code admin UI** (the open Milestone 1 item) becomes required —
-  rotate/deactivate codes in-app; instance owners won't have a Prisma escape
-  hatch. This is how an owner controls who joins.
+- ✅ **First-run setup wizard** (replaces `db:seed` + `SEED_*` env vars): with
+  zero users, `/login` and `/signup` redirect to `/setup`, which creates the
+  admin account + initial invite code in the browser (`/api/setup`, guarded to
+  the zero-user state). The seed script stays as a dev/CI convenience only.
+- ✅ **Config diet**: zero required env vars for `docker compose up`.
+  `AUTH_SECRET` is auto-generated on first boot and persisted under
+  `STORAGE_DIR` (`docker-entrypoint.sh`); `AUTH_URL` optional via trust-host;
+  Postgres password defaults (internal network) but is overridable.
+- 🚧 **Invite-code admin UI** (the open Milestone 1 item) becomes required —
+  the active code is now shown to admins on `/members`; rotate/deactivate
+  in-app still to do. This is how an owner controls who joins.
 - ⬜ **Reverse-proxy support + docs**: verify Auth.js works behind
   Traefik/Nginx Proxy Manager/Tailscale with TLS termination (`AUTH_URL`,
   trusted-host/proxy headers). Document the canonical proxy setups — this is
   the #1 issue source for self-hosted apps (we already hit the LAN-IP flavor
   of it with phone sign-in).
-- ⬜ **Published multi-arch Docker image** (amd64 + arm64 for Pi/NAS users) on
-  GHCR with tagged releases, so `docker compose up` works with no local build.
-  Auto-migrate-on-startup already works; keep it.
-- ⬜ **Public README + docs**: written for strangers — screenshots (lead with
-  the bookcase view), feature list, copy-paste compose file, upgrade
-  instructions, backup guidance (Postgres dump + `STORAGE_DIR`).
-- ⬜ **License + name**: pick a license (AGPL to prevent paid hosted forks, MIT
-  if we don't care) and a searchable project name ("Book Club" is ungoogleable).
+- 🚧 **Published multi-arch Docker image** (amd64 + arm64 for Pi/NAS users) on
+  GHCR: `docker-publish.yml` workflow builds/pushes on main + `v*` tags;
+  becomes live once the GitHub repo exists. Compose already points at
+  `ghcr.io/dillon-webster/chapterhouse:latest` with `build: .` as fallback.
+- 🚧 **Public README + docs**: quickstart (3 commands, no config), options
+  table, proxy notes, upgrade + backup guidance — done. Screenshots (lead
+  with the bookcase view) still to add.
+- ✅ **License + name**: MIT, named **Chapterhouse**.
 - ⬜ **Basic hardening for strangers' instances**: rate-limit login/signup,
   and land enough of Milestone 8 (error logging) that issue reports are
   diagnosable.
