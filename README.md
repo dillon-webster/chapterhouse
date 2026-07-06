@@ -8,6 +8,13 @@ activity feed. One instance hosts one club.
 Each instance is private: members join by invite code, and books are EPUB
 files the instance owner supplies.
 
+<p align="center">
+  <img src="docs/screenshots/bookcase-shelves.png" width="24%" alt="Bookcase shelves with book spines" />
+  <img src="docs/screenshots/reader.png" width="24%" alt="EPUB reader" />
+  <img src="docs/screenshots/dashboard.png" width="24%" alt="Dashboard with the club's current pick" />
+  <img src="docs/screenshots/catalog.jpg" width="24%" alt="Shared catalog" />
+</p>
+
 ## Quick start (Docker)
 
 All you need is Docker. No account creation, no config files, no secrets to
