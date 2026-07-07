@@ -1,26 +1,14 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
+import { signupSchema } from "@/lib/accountSchema";
 import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
 // Slows invite-code guessing and mass account creation.
 const SIGNUP_LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 };
-
-const signupSchema = z.object({
-  username: z
-    .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(30, "Username must be at most 30 characters")
-    .regex(/^[a-zA-Z0-9_]+$/, "Use letters, numbers, and underscores only"),
-  email: z.email("Enter a valid email"),
-  displayName: z.string().min(1, "Display name is required").max(50),
-  password: z.string().min(8, "Password must be at least 8 characters").max(200),
-  inviteCode: z.string().min(1, "Invite code is required"),
-});
 
 export async function POST(request: Request) {
   const rate = checkRateLimit(`signup:${clientIp(request)}`, SIGNUP_LIMIT);

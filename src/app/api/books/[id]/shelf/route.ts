@@ -3,7 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { recordActivity } from "@/lib/activity";
-import { SHELF_STATUSES } from "@/lib/shelf";
+import { SHELF_STATUSES, shelfTransition } from "@/lib/shelf";
 
 const schema = z.object({
   status: z.enum(SHELF_STATUSES),
@@ -37,12 +37,10 @@ export async function PATCH(
     return new NextResponse(null, { status: 204 });
   }
 
-  const now = new Date();
-  const startedAt =
-    status === "CURRENTLY_READING" && !existing?.startedAt
-      ? now
-      : existing?.startedAt ?? null;
-  const finishedAt = status === "FINISHED" ? now : null;
+  const { startedAt, finishedAt, progressPercent } = shelfTransition({
+    status,
+    existingStartedAt: existing?.startedAt ?? null,
+  });
 
   await prisma.userBook.upsert({
     where: { userId_bookId: { userId: session.user.id, bookId } },
@@ -52,13 +50,13 @@ export async function PATCH(
       status,
       startedAt,
       finishedAt,
-      progressPercent: status === "FINISHED" ? 100 : 0,
+      progressPercent: progressPercent ?? 0,
     },
     update: {
       status,
       startedAt,
       finishedAt,
-      ...(status === "FINISHED" ? { progressPercent: 100 } : {}),
+      ...(progressPercent !== undefined ? { progressPercent } : {}),
     },
   });
 

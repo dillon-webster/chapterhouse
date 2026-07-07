@@ -17,20 +17,33 @@ export interface ImportResult {
   failed: { filename: string; error: string }[];
 }
 
+// Split a directory listing into EPUBs that still need importing vs. ones
+// already in the catalog. Case-insensitive on the extension; non-EPUB entries
+// are ignored entirely (neither imported nor counted as skipped).
+export function selectNewEpubs(
+  entries: string[],
+  existingPaths: Iterable<string>,
+): { newFiles: string[]; skipped: number } {
+  const existing = new Set(existingPaths);
+  const epubs = entries.filter((f) => f.toLowerCase().endsWith(".epub"));
+  const newFiles = epubs.filter((f) => !existing.has(f));
+  return { newFiles, skipped: epubs.length - newFiles.length };
+}
+
 export async function importBooks(): Promise<ImportResult> {
-  let files: string[];
+  let entries: string[];
   try {
-    const entries = await fs.readdir(EPUB_DIR);
-    files = entries.filter((f) => f.toLowerCase().endsWith(".epub"));
+    entries = await fs.readdir(EPUB_DIR);
   } catch {
     return { imported: 0, skipped: 0, failed: [] };
   }
 
   const existing = await prisma.book.findMany({ select: { epubPath: true } });
-  const existingPaths = new Set(existing.map((b) => b.epubPath));
+  const existingPaths = existing
+    .map((b) => b.epubPath)
+    .filter((p): p is string => p !== null);
 
-  const newFiles = files.filter((f) => !existingPaths.has(f));
-  const skipped = files.length - newFiles.length;
+  const { newFiles, skipped } = selectNewEpubs(entries, existingPaths);
 
   let imported = 0;
   const failed: { filename: string; error: string }[] = [];

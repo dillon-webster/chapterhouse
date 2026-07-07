@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { randomInt } from "node:crypto";
-import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
+import { accountSchema } from "@/lib/accountSchema";
 import { checkRateLimit, clientIp, rateLimitResponse } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -12,17 +12,6 @@ const SETUP_LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 };
 // First-run setup: creates the instance's admin account and initial invite
 // code. Only usable while the instance has zero users; afterwards it is inert
 // (both GET and POST), so it needs no auth of its own.
-
-const setupSchema = z.object({
-  username: z
-    .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(30, "Username must be at most 30 characters")
-    .regex(/^[a-zA-Z0-9_]+$/, "Use letters, numbers, and underscores only"),
-  email: z.email("Enter a valid email"),
-  displayName: z.string().min(1, "Display name is required").max(50),
-  password: z.string().min(8, "Password must be at least 8 characters").max(200),
-});
 
 // Readable invite code, unambiguous charset (no 0/O/1/I/L).
 function generateInviteCode(): string {
@@ -48,7 +37,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const parsed = setupSchema.safeParse(body);
+  const parsed = accountSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Invalid input" },

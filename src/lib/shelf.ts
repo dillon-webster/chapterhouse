@@ -31,3 +31,33 @@ export const SHELF_EMPTY_MESSAGES: Record<ShelfStatus, string> = {
   FINISHED: "Celebrate the stories\nyou've completed.",
   DNF: "Not every story is\nmeant to be finished.",
 };
+
+// Side effects a shelf status change has on the UserBook row, independent of
+// Prisma so the rules can be unit-tested. `startedAt` is stamped the first time
+// a book becomes CURRENTLY_READING and preserved thereafter; `finishedAt` is
+// set only while FINISHED; and finishing pins progress to 100%.
+export interface ShelfTransition {
+  startedAt: Date | null;
+  finishedAt: Date | null;
+  /** When present, progress should be pinned to this value; absent leaves it untouched. */
+  progressPercent?: number;
+}
+
+export function shelfTransition({
+  status,
+  existingStartedAt = null,
+  now = new Date(),
+}: {
+  status: ShelfStatus;
+  existingStartedAt?: Date | null;
+  now?: Date;
+}): ShelfTransition {
+  const startedAt =
+    status === "CURRENTLY_READING" && !existingStartedAt ? now : existingStartedAt;
+  const finishedAt = status === "FINISHED" ? now : null;
+  return {
+    startedAt,
+    finishedAt,
+    ...(status === "FINISHED" ? { progressPercent: 100 } : {}),
+  };
+}
