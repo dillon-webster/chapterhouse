@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { deleteFile } from "@/lib/storage";
+import { normalizeSeries } from "@/lib/series";
 
 // Admin-only metadata edit. Currently used to assign series grouping
 // (`series` + `seriesIndex`), since EPUBs carry no series metadata.
@@ -17,19 +18,15 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
 
-  const data: { series?: string | null; seriesIndex?: number | null } = {};
-  if ("series" in body) {
-    const s = typeof body.series === "string" ? body.series.trim() : "";
-    data.series = s.length > 0 ? s : null;
+  // Require `series` so a partial/empty body can't silently wipe the grouping.
+  if (!("series" in body)) {
+    return NextResponse.json({ error: "series is required" }, { status: 400 });
   }
-  if ("seriesIndex" in body) {
-    const n = Number(body.seriesIndex);
-    data.seriesIndex = Number.isFinite(n) ? n : null;
-  }
-  // Clearing the series also clears its index so books don't keep a stale order.
-  if (data.series === null) data.seriesIndex = null;
-
-  const book = await prisma.book.update({ where: { id }, data });
+  const { series, seriesIndex } = normalizeSeries(body.series, body.seriesIndex);
+  const book = await prisma.book.update({
+    where: { id },
+    data: { series, seriesIndex },
+  });
   return NextResponse.json(book);
 }
 

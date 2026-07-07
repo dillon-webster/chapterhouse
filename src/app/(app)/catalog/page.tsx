@@ -72,6 +72,12 @@ export default async function CatalogPage() {
             <>
               <UploadBooksButton />
               <ImportBooksButton />
+              <Link
+                href="/catalog/manage"
+                className="rounded-lg bg-accent/15 px-4 py-2 text-sm font-medium text-accent-dark transition-colors hover:bg-accent/25"
+              >
+                Manage
+              </Link>
             </>
           )}
         </div>
