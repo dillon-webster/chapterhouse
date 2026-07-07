@@ -174,7 +174,7 @@ book on their shelves (metadata-only, no reader).
 - ⬜ Add basic operational docs: where logs live on the server, how to tail them,
   how long they are retained, and what data must never be logged.
 
-## Milestone 9 — Public self-hosted release ⬜
+## Milestone 9 — Public self-hosted release 🚧
 
 Open-source the app so anyone can run their own instance for their own group
 (the Jellyfin/Audiobookshelf model). **One instance = one club**, so no
@@ -194,18 +194,22 @@ What has to change from the current setup:
 - 🚧 **Invite-code admin UI** (the open Milestone 1 item) becomes required —
   the active code is now shown to admins on `/members`; rotate/deactivate
   in-app still to do. This is how an owner controls who joins.
-- ⬜ **Reverse-proxy support + docs**: verify Auth.js works behind
-  Traefik/Nginx Proxy Manager/Tailscale with TLS termination (`AUTH_URL`,
-  trusted-host/proxy headers). Document the canonical proxy setups — this is
-  the #1 issue source for self-hosted apps (we already hit the LAN-IP flavor
-  of it with phone sign-in).
-- 🚧 **Published multi-arch Docker image** (amd64 + arm64 for Pi/NAS users) on
-  GHCR: `docker-publish.yml` workflow builds/pushes on main + `v*` tags;
-  becomes live once the GitHub repo exists. Compose already points at
+- ✅ **Reverse-proxy support + docs**: `AUTH_TRUST_HOST` is preset and the app
+  trusts the forwarded host / `X-Forwarded-For` / `X-Real-IP` headers
+  (`src/lib/rateLimit.ts`), with `AUTH_URL` as an escape hatch when host
+  detection misbehaves behind a proxy. Canonical setups documented in the README
+  ("How friends connect"): Tailscale `serve`, a reverse proxy
+  (Caddy/Traefik/Nginx Proxy Manager), and Cloudflare Tunnel — all terminating
+  TLS. This was the #1 issue source we anticipated (we'd already hit the LAN-IP
+  flavor with phone sign-in).
+- ✅ **Published multi-arch Docker image** (amd64 + arm64 for Pi/NAS users) on
+  GHCR: `docker-publish.yml` builds/pushes on main + `v*` tags (and cuts a
+  GitHub Release on `v*`). Compose points at
   `ghcr.io/dillon-webster/chapterhouse:latest` with `build: .` as fallback.
-- 🚧 **Public README + docs**: quickstart (3 commands, no config), options
-  table, proxy notes, upgrade + backup guidance — done. Screenshots (lead
-  with the bookcase view) still to add.
+- ✅ **Public README + docs**: quickstart (3 commands, no config), options
+  table, proxy notes, upgrade + backup guidance, a "how it differs from
+  Calibre-Web/Kavita" section, PWA home-screen install steps, and screenshots
+  (`docs/screenshots/`). Adjacent: `SECURITY.md` + `CONTRIBUTING.md`.
 - ✅ **License + name**: MIT, named **Chapterhouse**.
 - 🚧 **Basic hardening for strangers' instances**: rate-limiting done —
   per-IP on login (5/min) and signup (5/15min), per-user on the Open Library
