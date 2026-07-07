@@ -15,6 +15,31 @@ files the instance owner supplies.
   <img src="docs/screenshots/catalog.jpg" width="24%" alt="Shared catalog" />
 </p>
 
+## How it's different from Calibre-Web, Kavita, and friends
+
+Short version: those are **libraries**; Chapterhouse is a **book club**.
+
+Calibre-Web, Kavita, and Komga are excellent at what they do — managing and
+reading a large personal or family library, with deep catalog management, format
+handling, and OPDS. If that's what you're after, use one of them; Chapterhouse
+isn't trying to compete there and happily coexists with them.
+
+Chapterhouse is built around the *social* side of reading with a small group of
+friends — the part those tools leave out:
+
+- **One club per instance.** A private, invite-only group, not a general-purpose
+  library for the whole internet or your family.
+- **A monthly pick** the whole club reads together.
+- **A shared activity feed** — see when friends start, make progress on, and
+  finish books.
+- **Bookcase-style shelves** (want to read / reading / finished / DNF) that
+  double as a social profile.
+
+What it deliberately **doesn't** do — reach for the tools above instead if you
+need these: massive libraries and catalog management, comics/manga, audiobooks,
+format conversion, or OPDS to external reader apps. Chapterhouse reads **EPUBs
+in-app**, and that's the point.
+
 ## Quick start (Docker)
 
 All you need is Docker. No account creation, no config files, no secrets to
@@ -77,6 +102,22 @@ setup:
 
 If sign-in redirects ever go to the wrong host behind a proxy, set `AUTH_URL`
 to your public URL.
+
+### Add it to your home screen
+
+Chapterhouse is a PWA, so members can install it and run it like a native app —
+full-screen, no browser chrome, its own home-screen icon. Share these steps with
+your club:
+
+- **iPhone / iPad (Safari):** open the site in **Safari**, tap the **Share**
+  button, then **Add to Home Screen** → **Add**.
+- **Android (Chrome):** open the site in **Chrome**, tap the **⋮** menu, then
+  **Add to Home screen** / **Install app** (Chrome may also offer an install
+  prompt on its own).
+
+Launching from that icon opens Chapterhouse standalone, in portrait, exactly
+like an app. This needs an **HTTPS** address, which all three connection options
+above provide (Tailscale `serve`, a reverse proxy, or a Cloudflare Tunnel).
 
 **Upgrading:** `docker compose pull && docker compose up -d` — migrations run
 automatically on startup.
