@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import Link from "next/link";
 import { ImportBooksButton } from "@/components/ImportBooksButton";
+import { UploadBooksButton } from "@/components/UploadBooksButton";
 import { CatalogGrid, type CatalogItem, type BookTile } from "@/components/CatalogGrid";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +68,12 @@ export default async function CatalogPage() {
           >
             + Add book
           </Link>
-          {session?.user?.isAdmin && <ImportBooksButton />}
+          {session?.user?.isAdmin && (
+            <>
+              <UploadBooksButton />
+              <ImportBooksButton />
+            </>
+          )}
         </div>
       </div>
 

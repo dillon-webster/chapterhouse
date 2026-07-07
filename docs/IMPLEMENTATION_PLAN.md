@@ -48,8 +48,11 @@ imported via `npm run db:import` or the in-app "Import books" button (admin only
 - ⬜ Admin: rotate/deactivate invite codes (UI + API)
 
 ## Milestone 2 — Catalog ✅
-- ✅ EPUBs added to server by owner; `npm run db:import` or in-app "Import books"
-  button scans `STORAGE_DIR/epubs/`, extracts metadata + cover, creates DB rows
+- ✅ EPUBs added by admins two ways: **in-app upload** (`Catalog → Upload EPUBs`,
+  `POST /api/admin/upload` — no shell/host access needed) or bulk folder-drop into
+  `STORAGE_DIR/epubs/` + "Import books". Both run the same pipeline
+  (`src/lib/importBooks.ts`): extract metadata + cover, generate spine, create DB
+  rows. `npm run db:import` covers the CLI case.
 - ✅ `src/lib/epub.ts` — server-side EPUB parsing (adm-zip + OPF metadata + cover)
 - ✅ Catalog browse grid (all users), book detail page
 - ✅ Cover served via `/api/books/[id]/cover` (session-gated)

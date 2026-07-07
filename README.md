@@ -67,10 +67,14 @@ cd chapterhouse
 docker compose up -d --build
 ```
 
-**Adding books:** drop `.epub` files into the `storage/epubs/` directory that
-appears next to your compose file, then click **Import books** in the app
-(admin only). Covers, page counts, and shelf spines are extracted
-automatically.
+**Adding books:** as an admin, open **Catalog → Upload EPUBs** and pick one or
+more `.epub` files — no shell or server access needed. Covers, page counts, and
+shelf spines are extracted automatically.
+
+Prefer bulk-loading a big library from disk? Drop `.epub` files into the
+`storage/epubs/` directory next to your compose file, then click **Import
+books** in the app. (Point `STORAGE_HOST_PATH` at a large drive to keep the
+library there — see the options table below.)
 
 ### Options (all optional)
 
