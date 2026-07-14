@@ -19,6 +19,9 @@
  */
 :root {
   color-scheme: light;
+  /* Default UI font stack; overridden per preset by the [data-font] rules
+   * below. Registry: src/lib/fonts.ts. */
+  --app-font: Georgia, Cambria, "Times New Roman", serif;
   --paper: 250 248 243; /* #faf8f3 warm cream */
   --ink: 28 25 23; /* #1c1917 warm near-black */
   --accent: 139 94 52; /* #8b5e34 */
@@ -274,6 +277,32 @@
   }
 }
 
+/* ---------------------------------------------------------------------------
+ * UI font presets. [data-font] on <html> (set from the user's saved font in
+ * app/layout.tsx) picks the stack the body renders in. Every stack is OS-native
+ * — no web-font downloads, so the app stays fully offline. Registry + labels:
+ * src/lib/fonts.ts (keep the stacks in sync with that file).
+ * --------------------------------------------------------------------------- */
+[data-font="serif"] {
+  --app-font: Georgia, Cambria, "Times New Roman", serif;
+}
+[data-font="book"] {
+  --app-font: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    Georgia, serif;
+}
+[data-font="sans"] {
+  --app-font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+}
+[data-font="rounded"] {
+  --app-font: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN",
+    system-ui, sans-serif;
+}
+[data-font="mono"] {
+  --app-font: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
 body {
   @apply bg-paper text-ink antialiased;
+  font-family: var(--app-font);
 }

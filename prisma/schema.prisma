@@ -49,6 +49,8 @@ model User {
   // UI color preset (see src/lib/themes.ts). Each theme still follows the OS
   // light/dark setting; this only chooses the palette.
   theme        String   @default("brown")
+  // UI font preset (see src/lib/fonts.ts). Chooses the app-wide typeface.
+  font         String   @default("serif")
   createdAt    DateTime @default(now())
 
   shelfEntries    UserBook[]

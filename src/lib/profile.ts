@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getRecentActivity } from "@/lib/activity";
 import type { ActivityItem } from "@/lib/activityFormat";
 import { normalizeTheme, type ThemeId } from "@/lib/themes";
+import { normalizeFont, type FontId } from "@/lib/fonts";
 
 export type ProfileData = {
   user: {
@@ -12,6 +13,7 @@ export type ProfileData = {
     bio: string | null;
     hasAvatar: boolean;
     theme: ThemeId;
+    font: FontId;
     createdAt: string;
   };
   counts: Record<ShelfStatus, number>;
@@ -42,6 +44,7 @@ export async function getProfileData(userId: string): Promise<ProfileData | null
           bio: true,
           avatarUrl: true,
           theme: true,
+          font: true,
           createdAt: true,
         },
       }),
@@ -92,6 +95,7 @@ export async function getProfileData(userId: string): Promise<ProfileData | null
       bio: user.bio,
       hasAvatar: !!user.avatarUrl,
       theme: normalizeTheme(user.theme),
+      font: normalizeFont(user.font),
       createdAt: user.createdAt.toISOString(),
     },
     counts,
