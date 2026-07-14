@@ -4,6 +4,7 @@ import { getProfileData } from "@/lib/profile";
 import { ProfileView } from "@/components/ProfileView";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { ThemePicker } from "@/components/ThemePicker";
+import { FontPicker } from "@/components/FontPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function ProfilePage() {
       </div>
       <ProfileView data={data} />
       <ThemePicker current={data.user.theme} />
+      <FontPicker current={data.user.font} />
     </div>
   );
 }

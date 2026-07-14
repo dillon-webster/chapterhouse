@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { saveFile, deleteFile } from "@/lib/storage";
 import { parseTheme } from "@/lib/themes";
+import { parseFont } from "@/lib/fonts";
 
 const MAX_AVATAR_BYTES = 5_000_000;
 
@@ -18,6 +19,7 @@ export async function PATCH(request: Request) {
     bio?: string | null;
     avatarUrl?: string;
     theme?: string;
+    font?: string;
   } = {};
 
   const theme = form.get("theme");
@@ -27,6 +29,15 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Unknown theme." }, { status: 400 });
     }
     data.theme = parsed;
+  }
+
+  const font = form.get("font");
+  if (font !== null) {
+    const parsed = parseFont(font);
+    if (!parsed) {
+      return NextResponse.json({ error: "Unknown font." }, { status: 400 });
+    }
+    data.font = parsed;
   }
 
   const displayName = form.get("displayName");

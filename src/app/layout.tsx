@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
-import { getUserTheme } from "@/lib/userTheme";
+import { getUserAppearance } from "@/lib/userTheme";
 
 export const metadata: Metadata = {
   title: "Chapterhouse",
@@ -33,10 +33,10 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const theme = await getUserTheme();
+  const { theme, font } = await getUserAppearance();
   return (
-    <html lang="en" data-theme={theme}>
-      <body className="min-h-screen font-serif">
+    <html lang="en" data-theme={theme} data-font={font}>
+      <body className="min-h-screen">
         <Providers>{children}</Providers>
       </body>
     </html>
