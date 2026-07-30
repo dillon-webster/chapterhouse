@@ -164,6 +164,25 @@ everyone.
 finished a book lately. It's the part that makes it feel like a club instead of
 a folder of files. Tap someone to see their profile and shelves.
 
+### Forgot your password?
+
+There's no email-based reset (that would mean requiring SMTP config, which
+Chapterhouse deliberately doesn't need). Instead, reset it from the box the
+instance runs on:
+
+```bash
+# Forgot your username too? List the accounts first.
+docker compose exec app npx tsx prisma/reset-password.ts --list
+
+# Then set a new password, by username or email.
+docker compose exec app npx tsx prisma/reset-password.ts alice 'new-password'
+```
+
+No rebuild needed — the image ships with `prisma/` and the deps to run it. Note
+that the password lands in your shell history; clear it if that matters to you.
+Locally (outside Docker) the same thing is `npm run db:users` and
+`npm run db:reset-password -- alice 'new-password'`.
+
 ## Stack
 
 - **Next.js 16** (App Router), **TypeScript**, and **Tailwind CSS**
@@ -207,6 +226,8 @@ The first visit walks you through creating the admin account. Or run
 | `npm run db:deploy` | Apply migrations (prod / CI) |
 | `npm run db:seed` | Seed an admin + invite code (dev convenience) |
 | `npm run db:studio` | Prisma Studio |
+| `npm run db:users` | List accounts (username, email, admin flag) |
+| `npm run db:reset-password -- <identifier> <password>` | Reset an account's password |
 
 ## Architecture notes
 

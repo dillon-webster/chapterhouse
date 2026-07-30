@@ -16,7 +16,9 @@
     "db:studio": "prisma studio",
     "db:import": "tsx prisma/import.ts",
     "db:backfill-spines": "tsx prisma/backfill-spines.ts",
-    "db:backfill-series": "tsx prisma/backfill-series.ts"
+    "db:backfill-series": "tsx prisma/backfill-series.ts",
+    "db:users": "tsx prisma/reset-password.ts --list",
+    "db:reset-password": "tsx prisma/reset-password.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
